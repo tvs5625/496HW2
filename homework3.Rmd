@@ -1,0 +1,79 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(astsa)
+library(dynlm)
+library(dplyr)
+library(lmtest)
+```
+
+```{r}
+date <- seq(as.Date("2023/01/01"),as.Date("2023/07/19"),by = 1)
+```
+
+```{r}
+data<-hw3_data
+```
+
+```{r}
+data$date <- date
+```
+
+```{r}
+data
+```
+
+```{r}
+plot(x = data$date, y = data$y, type = 'l', xlab = 'Date', ylab = 'y')
+```
+```{r}
+print(mean(data$y))
+```
+
+
+There does not seem to be a clear trend from the beginning to the end of the time period. There does seem to be a trend over the course of the month where they are peeking towards the beginning of the month and decreasing afterwards.
+
+```{r}
+Box.test(data$y, 24, "Ljung")
+```
+
+
+```{r}
+acf2(data$y)
+```
+```{r}
+arma <- sarima(data$y, p = 1, d = 0, q = 1, details = TRUE)
+arma
+```
+
+```{r}
+arma$ttable
+```
+
+```{r}
+model <- dynlm(y~L(y, 1) + x, data = data)
+```
+
+The ACF and PACF model show there being significant spikes in the first lag. As such I fit an ARMA(1,1) model. The ARMA model residuals appear to be random which suggests this is a good fit. 
+
+```{r}
+summary(model)
+```
+
+```{r}
+plot(model$fitted.values, model.frame(model)$y)
+```
+
+```{r}
+plot(model$fitted.values, model$residuals)
+```
+
+The ADL model fits almost perfectly which can be seen in the high level of significance in the lagged dependent variable. This can also be seen in the plot of the fitted value which forms a perfect 45 degree line aswell as the plotted residuals which are all very close to 0. 
+
+
+
+
+
